@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="/css/navbar.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <script src="https://kit.fontawesome.com/3935140481.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" href="img/men.jpg">
+    <link rel="stylesheet" href="tarjetaProduct.css">
+    <title>Productos</title>
+</head>
+<body>
+
+<header>
+
+    <nav>
+
+    </nav>
+</header>
+
+<div class="container_products">
+    <div class="product-card">
+        <p class="referencia">Referencia: 12345</p><br>
+        <img src="img/men.jpg"
+             alt="Nombre del Producto">
+        <h2>Manzana</h2>
+        <p>Deliciosas manzanas</p>
+        <div class="price">$ 10,000</div>
+
+        <button>Añadir al carrito <i class="fas fa-shopping-cart"></i>
+        </button>
+    </div>
+
+</div>
+<div class="cart-icon" onclick="toggleCart()">
+    <i class="fas fa-shopping-cart"></i> <span id="cart-count">0</span>
+</div>
+
+
+<!-- Modal del Carrito -->
+<div id="cart-modal" class="cart-modal">
+    <div class="cart-content">
+        <span class="close-btn" onclick="toggleCart()">&times;</span>
+        <h2>Tu Carrito</h2>
+        <ul id="cart-items"></ul>
+        <p><strong>Total: </strong><span id="total-price">$0</span></p>
+        <button class="finalizar-btn" onclick="finalizarCompra()">Finalizar Compra</button>
+    </div>
+</div>
+
+<script>
+    let cart = [];
+    let totalPrice = 0;
+    const MAX_QUANTITY = 100;  // Límite máximo de 100 kg
+
+    // Función para formatear números con puntos en miles
+    function formatNumberWithPoints(number) {
+        return number.toLocaleString('es-ES');
+    }
+
+    function addToCart(productName, productPrice, productImage) {
+        const existingProduct = cart.find(item => item.name === productName);
+        if (existingProduct) {
+            alert('El producto ya está en el carrito. Usa el menú desplegable para cambiar la cantidad.');
+        } else {
+            cart.push({name: productName, price: productPrice, image: productImage, quantity: 1});
+        }
+        updateCart();
+    }
+
+    function updateCart() {
+        const cartItems = document.getElementById('cart-items');
+        const cartCount = document.getElementById('cart-count');
+        const totalPriceElement = document.getElementById('total-price');
+        
+        cartItems.innerHTML = '';  // Limpiar lista
+        totalPrice = 0;
+
+        cart.forEach(item => {
+            const li = document.createElement('li');
+            const img = document.createElement('img');
+            img.src = item.image;
+            img.alt = item.name;
+            img.style.width = "50px";  // Ajusta el tamaño de la imagen
+            img.style.marginRight = "10px";
+            
+            const itemInfo = document.createElement('span');
+            itemInfo.textContent = `${formatNumberWithPoints(item.price)} x ${item.quantity} kg`;  // Formatear precio unitario
+
+            // Crear el desplegable (select)
+            const select = document.createElement('select');
+            for (let i = 1; i <= MAX_QUANTITY; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = i;
+                if (i === item.quantity) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            }
+            select.onchange = (event) => updateQuantity(item.name, parseInt(event.target.value));
+
+            // Crear el ícono de basurero
+            const trashIcon = document.createElement('i');
+            trashIcon.classList.add('fas', 'fa-trash-alt');  // Clases de Font Awesome
+            trashIcon.style.color = 'red';
+            trashIcon.style.cursor = 'pointer';
+            trashIcon.style.marginLeft = '10px';
+            trashIcon.onclick = () => removeFromCart(item.name);
+
+            li.appendChild(img);
+            li.appendChild(itemInfo);
+            li.appendChild(select);
+            li.appendChild(trashIcon);
+            cartItems.appendChild(li);
+            
+            totalPrice += item.price * item.quantity;
+        });
+
+        cartCount.textContent = cart.length;
+        totalPriceElement.textContent = `$${formatNumberWithPoints(totalPrice)}`;  // Formatear total
+    }
+
+    function updateQuantity(productName, newQuantity) {
+        const product = cart.find(item => item.name === productName);
+        product.quantity = newQuantity;
+        updateCart();
+    }
+
+    function removeFromCart(productName) {
+        cart = cart.filter(item => item.name !== productName);
+        updateCart();
+    }
+
+    function toggleCart() {
+        const cartModal = document.getElementById('cart-modal');
+        cartModal.style.display = cartModal.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    function finalizarCompra() {
+        alert('Compra finalizada!');
+        cart = [];
+        updateCart();
+        toggleCart();
+    }
+
+    document.querySelectorAll('.product-card button').forEach(button => {
+        button.addEventListener('click', () => {
+            const productCard = button.closest('.product-card');
+            const productName = productCard.querySelector('h2').textContent;
+            const productPrice = parseFloat(productCard.querySelector('.price').textContent.replace('$', '').replace(',', ''));
+            const productImage = productCard.querySelector('img').src;
+            addToCart(productName, productPrice, productImage);
+        });
+    });
+</script>
